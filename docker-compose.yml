@@ -1,0 +1,45 @@
+version: '3.3'
+services:
+  node:
+    container_name: nodeapp
+    build:
+      context: .
+      dockerfile: node.dockerfile
+    ports:
+      - "3000:3000"
+    networks:
+      - nodeapp-network
+    depends_on:
+      - mongo
+  mongo:
+    image: mongo:4.2.9-bionic
+    container_name: mongo
+    ports:
+      - '27017:27017'
+    networks:
+      - nodeapp-network
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin
+      MONGO_INITDB_DATABASE: nodeapp
+  mongo_express:
+    image: mongo-express
+    container_name: mongo_express
+    depends_on:
+      - 'mongo'
+    ports:
+      - '8081:8081'
+    restart: always
+    networks:
+      - nodeapp-network
+    volumes:
+        - ./mongodata:/data/db
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongo
+      ME_CONFIG_MONGODB_PORT: 27017
+      ME_CONFIG_MONGODB_ENABLE_ADMIN: "true"
+      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: admin
+networks:
+  nodeapp-network:
+    driver: bridge
